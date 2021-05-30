@@ -10,10 +10,23 @@ from matplotlib import pyplot
 from sklearn.metrics import precision_recall_curve
 from sklearn.metrics import f1_score
 from sklearn.metrics import auc
+import numpy as np
 
 # feature_names = []
 # print(feature_names)
 data = pd.read_csv('./data/MI.data', sep=",", names=feature_names, index_col=False)
+data.replace("?", np.nan, inplace = True)
+
+features_data = data[data.columns[1:112]]
+output_data   = data[data.columns[119]]
+features_data =pd.DataFrame(features_data)
+output_data   = pd.DataFrame(output_data)
+
+missing_data = features_data.isnull()
+print(features_data.isnull().sum())
+
+features_data.isnull().sum().reset_index(name="names").plot.bar(x='index', y='names', rot=90)
+
 
 # print(data.shape)
 print(data.describe())
