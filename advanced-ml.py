@@ -2,31 +2,21 @@ import sys
 sys.path.insert(0, 'data')
 from data.data_description import feature_names
 import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn import ensemble, metrics
-from sklearn.metrics import roc_curve
-from sklearn.metrics import roc_auc_score
-from matplotlib import pyplot
-from sklearn.metrics import precision_recall_curve
-from sklearn.metrics import f1_score
-from sklearn.metrics import auc
 import numpy as np
-from sklearn.impute import KNNImputer
-from imblearn.over_sampling import SMOTE
-from imblearn.combine import SMOTETomek
-from imblearn.under_sampling import TomekLinks
+from matplotlib import pyplot
 import collections
-from imblearn.over_sampling import BorderlineSMOTE
-from imblearn.ensemble import BalancedBaggingClassifier
-from sklearn.model_selection import cross_val_score
-from sklearn.model_selection import RepeatedStratifiedKFold
-from numpy import mean
+from sklearn.model_selection import train_test_split, cross_val_score, RepeatedStratifiedKFold
+from sklearn.metrics import roc_curve, roc_auc_score, precision_recall_curve, f1_score, auc, accuracy_score, precision_score, recall_score
+from sklearn.impute import KNNImputer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
-from imblearn.pipeline import Pipeline
-from imblearn.over_sampling import RandomOverSampler
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.cluster import KMeans
+from imblearn.over_sampling import SMOTE, BorderlineSMOTE, RandomOverSampler
+from imblearn.combine import SMOTETomek
+from imblearn.under_sampling import TomekLinks
+from imblearn.ensemble import BalancedBaggingClassifier
+from imblearn.pipeline import Pipeline
 from clover.over_sampling import ClusterOverSampler
 
 
@@ -43,14 +33,14 @@ def makeClassificationRandomForest(X_train, y_train, X_test, y_test):
  global y_predicted
  global lr_probs 
  #random forest classifier with class-imbalance
- model = ensemble.RandomForestClassifier(n_estimators=25, random_state=12)
+ model = RandomForestClassifier(n_estimators=25, random_state=12)
  model.fit(X_train,y_train)
  y_predicted = model.predict(X_test)
  #Not relevant metrics
- print('Accuracy Score : %f'%metrics.accuracy_score(y_test,y_predicted))
- print('Precision Score : %f'%metrics.precision_score(y_test,y_predicted,average='macro'))
- print('Recall Score : %f' %metrics.recall_score(y_test,y_predicted,average='macro'))
- print('F1 Score : %f'%metrics.f1_score(y_test,y_predicted,average='macro'))
+ print('Accuracy Score : %f'%accuracy_score(y_test,y_predicted))
+ print('Precision Score : %f'%precision_score(y_test,y_predicted,average='macro'))
+ print('Recall Score : %f' %recall_score(y_test,y_predicted,average='macro'))
+ print('F1 Score : %f'%f1_score(y_test,y_predicted,average='macro'))
  lr_probs = model.predict_proba(X_test)
  lr_probs = lr_probs[:, 1]
  
@@ -226,7 +216,7 @@ features_data['L_BLOOD'] = pd.to_numeric(features_data['L_BLOOD'])
 features_data['ROE'] = pd.to_numeric(features_data['ROE'])
 
 #Alternative way to fill NaN values at columns
-#features_data['AGE'] = features_data['AGE'].replace(np.nan, features_data['AGE'].mean())
+#features_data['AGE'] = features_data['AGE'].replace(np.nan, features_data['AGE'].np.mean())
 #features_data['AGE'].interpolate(method='linear', direction = 'forward', inplace=True) 
 
 
@@ -365,5 +355,5 @@ pipeline = Pipeline(steps=steps)
 cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=3, random_state=1)
 scores = cross_val_score(pipeline, X_train, y_train, scoring='roc_auc', cv=cv, n_jobs=-1)
 
-print('Mean ROC AUC: %.3f' % mean(scores))
+print('Mean ROC AUC: %.3f' % np.mean(scores))
 '''
