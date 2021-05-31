@@ -18,7 +18,8 @@ from imblearn.under_sampling import TomekLinks
 from imblearn.ensemble import BalancedBaggingClassifier
 from imblearn.pipeline import Pipeline
 from clover.over_sampling import ClusterOverSampler
-
+from sklearn.svm import SVC
+from numpy import mean
 
 global y_predicted
 global lr_probs
@@ -43,6 +44,16 @@ def makeClassificationRandomForest(X_train, y_train, X_test, y_test):
  print('F1 Score : %f'%f1_score(y_test,y_predicted,average='macro'))
  lr_probs = model.predict_proba(X_test)
  lr_probs = lr_probs[:, 1]
+ 
+def makeClassificationCostSensitive(X_train, y_train):
+ #random forest classifier with class-imbalance
+ model = SVC(gamma='scale', class_weight='balanced')
+ # define evaluation procedure
+ cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=3, random_state=1)
+ # evaluate model
+ scores = cross_val_score(model, X_train, y_train, scoring='roc_auc', cv=cv, n_jobs=-1)
+ # summarize performance
+ print('Mean ROC AUC: %.3f' % mean(scores))
  
 def printCurvesWithClassImbalance(lr_probs, y_test, y_predicted):
  # keep probabilities for the positive outcome only
@@ -345,6 +356,8 @@ print('After KMeans',counter)
 
 makeClassificationRandomForest(X_res, y_res, X_test, y_test)
 printCurvesWithClusterOverSampler(lr_probs, y_test, y_predicted)
+
+makeClassificationCostSensitive(X_train, y_train)
 
 plotCurves()
 
