@@ -216,7 +216,7 @@ features_data['L_BLOOD'] = pd.to_numeric(features_data['L_BLOOD'])
 features_data['ROE'] = pd.to_numeric(features_data['ROE'])
 
 #Alternative way to fill NaN values at columns
-#features_data['AGE'] = features_data['AGE'].replace(np.nan, features_data['AGE'].np.mean())
+#features_data['AGE'] = features_data['AGE'].replace(np.nan, features_data['AGE'].mean())
 #features_data['AGE'].interpolate(method='linear', direction = 'forward', inplace=True) 
 
 
