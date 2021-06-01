@@ -21,6 +21,15 @@ from clover.over_sampling import ClusterOverSampler
 from sklearn.svm import SVC
 from numpy import mean
 
+#########################
+# COST-SENSITIVE IMPORTS
+#########################
+from costcla.models import CostSensitiveRandomForestClassifier
+from costcla.metrics import savings_score
+import joblib
+sys.modules['sklearn.externals.joblib'] = joblib
+#########################
+
 global y_predicted
 global lr_probs
 
@@ -301,65 +310,65 @@ X_test = scaler.transform(X_test)
 #------------------------
 
 
-makeClassificationRandomForest(X_train, y_train, X_test, y_test)
-printCurvesWithClassImbalance(lr_probs, y_test, y_predicted)
+# makeClassificationRandomForest(X_train, y_train, X_test, y_test)
+# printCurvesWithClassImbalance(lr_probs, y_test, y_predicted)
 
-counter = collections.Counter(y_train)
-print('Before SMOTE',counter)
-smote = SMOTE(random_state=12)
+# counter = collections.Counter(y_train)
+# print('Before SMOTE',counter)
+# smote = SMOTE(random_state=12)
 
-X_train_sm,y_train_sm = smote.fit_resample(X_train, y_train)
+# X_train_sm,y_train_sm = smote.fit_resample(X_train, y_train)
 
-counter = collections.Counter(y_train_sm)
-print('After SMOTE',counter)
+# counter = collections.Counter(y_train_sm)
+# print('After SMOTE',counter)
 
-makeClassificationRandomForest(X_train_sm, y_train_sm, X_test, y_test)
-printCurvesWithSMOTE(lr_probs, y_test, y_predicted)
+# makeClassificationRandomForest(X_train_sm, y_train_sm, X_test, y_test)
+# printCurvesWithSMOTE(lr_probs, y_test, y_predicted)
 
-counter = collections.Counter(y_train)
-print('Before SMOTE Borderline',counter)
+# counter = collections.Counter(y_train)
+# print('Before SMOTE Borderline',counter)
 
-borderLineSMOTE = BorderlineSMOTE(kind='borderline-2', random_state=0)
-X_train_sm_borderline,y_train_sm_borderline = borderLineSMOTE.fit_resample(X_train, y_train)
+# borderLineSMOTE = BorderlineSMOTE(kind='borderline-2', random_state=0)
+# X_train_sm_borderline,y_train_sm_borderline = borderLineSMOTE.fit_resample(X_train, y_train)
 
-counter = collections.Counter(y_train_sm_borderline)
-print('After SMOTE Borderline',counter)
+# counter = collections.Counter(y_train_sm_borderline)
+# print('After SMOTE Borderline',counter)
 
-makeClassificationRandomForest(X_train_sm_borderline, y_train_sm_borderline, X_test, y_test)
-printCurvesWithBorderLineSMOTE(lr_probs, y_test, y_predicted)
+# makeClassificationRandomForest(X_train_sm_borderline, y_train_sm_borderline, X_test, y_test)
+# printCurvesWithBorderLineSMOTE(lr_probs, y_test, y_predicted)
 
-counter = collections.Counter(y_train)
-print('Before RandomOverSampler',counter)
+# counter = collections.Counter(y_train)
+# print('Before RandomOverSampler',counter)
 
-oversample = RandomOverSampler(sampling_strategy='minority')
-#oversample = RandomOverSampler(sampling_strategy=0.5)
-X_over, y_over = oversample.fit_resample(X_train, y_train)
+# oversample = RandomOverSampler(sampling_strategy='minority')
+# #oversample = RandomOverSampler(sampling_strategy=0.5)
+# X_over, y_over = oversample.fit_resample(X_train, y_train)
 
-counter = collections.Counter(y_over)
-print('After RandomOverSampler',counter)
+# counter = collections.Counter(y_over)
+# print('After RandomOverSampler',counter)
 
-makeClassificationRandomForest(X_over, y_over, X_test, y_test)
-printCurvesWithRandomOverSampler(lr_probs, y_test, y_predicted)
+# makeClassificationRandomForest(X_over, y_over, X_test, y_test)
+# printCurvesWithRandomOverSampler(lr_probs, y_test, y_predicted)
 
-counter = collections.Counter(y_train)
-print('Before KMeans',counter)
+# counter = collections.Counter(y_train)
+# print('Before KMeans',counter)
 
-smote = SMOTE(random_state= 12)
-kmeans = KMeans(n_clusters=50, random_state=17)
-kmeans_smote = ClusterOverSampler(oversampler=smote, clusterer=kmeans)
+# smote = SMOTE(random_state= 12)
+# kmeans = KMeans(n_clusters=50, random_state=17)
+# kmeans_smote = ClusterOverSampler(oversampler=smote, clusterer=kmeans)
 
-# Fit and resample imbalanced data
-X_res, y_res = kmeans_smote.fit_resample(X_train, y_train)
+# # Fit and resample imbalanced data
+# X_res, y_res = kmeans_smote.fit_resample(X_train, y_train)
 
-counter = collections.Counter(y_res)
-print('After KMeans',counter)
+# counter = collections.Counter(y_res)
+# print('After KMeans',counter)
 
-makeClassificationRandomForest(X_res, y_res, X_test, y_test)
-printCurvesWithClusterOverSampler(lr_probs, y_test, y_predicted)
+# makeClassificationRandomForest(X_res, y_res, X_test, y_test)
+# printCurvesWithClusterOverSampler(lr_probs, y_test, y_predicted)
 
-makeClassificationCostSensitive(X_train, y_train)
+# makeClassificationCostSensitive(X_train, y_train)
 
-plotCurves()
+# plotCurves()
 
 '''
 steps = [('over', RandomOverSampler()), ('model', RandomForestClassifier())]
@@ -370,3 +379,11 @@ scores = cross_val_score(pipeline, X_train, y_train, scoring='roc_auc', cv=cv, n
 
 print('Mean ROC AUC: %.3f' % np.mean(scores))
 '''
+cost_matrix_train = np.stack([[0.2, 0.8, 0, 0] for _ in range(X_train.shape[0])], axis=0)
+print(cost_matrix_train)
+y_pred_test_rf = RandomForestClassifier(random_state=0).fit(X_train, y_train).predict(X_test)
+cost_rf = CostSensitiveRandomForestClassifier()
+cost_rf_classifier = cost_rf.fit(X_train, y_train, cost_matrix_train)
+y_pred_test_csdt = cost_rf_classifier.predict(X_test)
+
+print(y_pred_test_csdt)
