@@ -307,7 +307,7 @@ print('-------------------')
 data = pd.DataFrame(data)
 
 X = data.iloc[:, 1:112]
-y = data.iloc[:, 121]
+y = data.iloc[:, 114]
 
 
 #drop columns with many NaN values - got it from plot
