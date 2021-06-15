@@ -7,7 +7,7 @@ from matplotlib import pyplot
 import collections
 from sklearn.model_selection import train_test_split, cross_val_score, RepeatedStratifiedKFold
 from sklearn.metrics import roc_curve, roc_auc_score, precision_recall_curve, f1_score, auc, accuracy_score, precision_score, recall_score, balanced_accuracy_score, plot_confusion_matrix
-from sklearn.impute import KNNImputer
+from sklearn.impute import KNNImputer, SimpleImputer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import MinMaxScaler
@@ -23,13 +23,19 @@ from numpy import mean,where
 from sklearn.decomposition import PCA
 from imblearn.under_sampling import NearMiss
 from imblearn.under_sampling import CondensedNearestNeighbour
+from xgboost import XGBClassifier
+from sklearn.model_selection import GridSearchCV
+from imblearn.under_sampling import ClusterCentroids
+from numpy import isnan
+from sklearn.decomposition import KernelPCA
+from sklearn.linear_model import LogisticRegression
 
 global y_predicted
 global lr_probs
 global model
 
 #CURVES
-fig, ((ax1, ax2), (ax3, ax4), (ax5, ax6), (ax7, ax8), (ax9, ax10), (ax11, ax12)) = pyplot.subplots(6,2)
+fig, ((ax1, ax2), (ax3, ax4), (ax5, ax6), (ax7, ax8), (ax9, ax10), (ax11, ax12),(ax13, ax14)) = pyplot.subplots(7,2)
 fig.suptitle('ROC AND AUC CURVES')   
 fig.tight_layout(pad=1.0)
 
@@ -59,7 +65,8 @@ def makeClassificationRandomForest(X_train, y_train, X_test, y_test):
  global lr_probs 
  global model
  #random forest classifier with class-imbalance
- model = RandomForestClassifier(n_estimators=25, random_state=12)
+ model = RandomForestClassifier(n_estimators=10, random_state=12,class_weight='balanced_subsample',criterion='entropy')
+ #model = LogisticRegression(random_state=0)
  model.fit(X_train,y_train)
  y_predicted = model.predict(X_test)
  #Not relevant metrics
@@ -229,7 +236,7 @@ def printCurvesWithUnderSampling(lr_probs, y_test, y_predicted):
  # axis labels
  ax11.set_xlabel('False Positive Rate')
  ax11.set_ylabel('True Positive Rate')
- ax11.set_title('ROC CURVE with ClusterOverSampler')
+ ax11.set_title('ROC CURVE with UnderSampling')
 
  # predict class values
  lr_precision, lr_recall, _ = precision_recall_curve(y_test, lr_probs)
@@ -243,6 +250,33 @@ def printCurvesWithUnderSampling(lr_probs, y_test, y_predicted):
  ax12.set_ylabel('Precision')
  ax12.set_title('AUC CURVE with UnderSampling')
 
+def printCurvesWithClusterCentroids(lr_probs, y_test, y_predicted):
+ # keep probabilities for the positive outcome only
+ # calculate scores
+ lr_auc = roc_auc_score(y_test, lr_probs)
+ # summarize scores
+ print('Random Forest: ROC AUC=%.3f' % (lr_auc))
+ # calculate roc curves
+ lr_fpr, lr_tpr, _ = roc_curve(y_test, lr_probs)
+ # plot the roc curve for the model
+ ax13.plot(lr_fpr, lr_tpr, marker='.', label='Random Forest')
+ # axis labels
+ ax13.set_xlabel('False Positive Rate')
+ ax13.set_ylabel('True Positive Rate')
+ ax13.set_title('ROC CURVE with ClusterCentroids')
+
+ # predict class values
+ lr_precision, lr_recall, _ = precision_recall_curve(y_test, lr_probs)
+ lr_f1, lr_auc = f1_score(y_test, y_predicted,average='macro'), auc(lr_recall, lr_precision)
+ # summarize scores
+ print('Random Forest: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
+ # plot the precision-recall curves
+ ax14.plot(lr_recall, lr_precision, marker='.', label='Random Forest')
+ # axis labels
+ ax14.set_xlabel('Recall')
+ ax14.set_ylabel('Precision')
+ ax14.set_title('AUC CURVE with ClusterCentroids')
+ 
 def plotCurves():
  # show the legend
  pyplot.legend()
@@ -301,20 +335,27 @@ print(y_train.shape)
 print(y_test.shape)
 
 #------------------------
-imputer = KNNImputer(weights='uniform',n_neighbors=3)
+imputer = KNNImputer(weights='uniform',n_neighbors=5)
 
 X_train = imputer.fit_transform(X_train)
 X_test  = imputer.transform(X_test)
+
+print('Missing Values Train: %d' % isnan(X_train).sum())
+print('Missing Values Test: %d' % isnan(X_test).sum())
 
 scaler = MinMaxScaler()
 
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
 
-#pca = PCA(n_components=5)# adjust yourself
-#pca.fit(X_train)
-#X_train = pca.transform(X_train)
-#X_test = pca.transform(X_test)
+pca = PCA(n_components=X.shape[1])# adjust yourself
+pca.fit(X_train)
+X_train = pca.transform(X_train)
+X_test = pca.transform(X_test)
+
+#kpca = KernelPCA(kernel='poly',n_components=700,degree=3,gamma=0.1,max_iter=10000)
+#X_train = kpca.fit_transform(X_train)
+#X_test = kpca.transform(X_test)
 #------------------------
 
 makeClassificationRandomForest(X_train, y_train, X_test, y_test)
@@ -361,7 +402,7 @@ counter = collections.Counter(y_train)
 print('Before KMeans',counter)
 
 smote = SMOTE(random_state= 12)
-kmeans = KMeans(n_clusters=50, random_state=17)
+kmeans = KMeans(n_clusters=25, random_state=17)
 kmeans_smote = ClusterOverSampler(oversampler=smote, clusterer=kmeans)
 
 # Fit and resample imbalanced data
@@ -389,6 +430,37 @@ print('After UnderSampling',counter)
 
 makeClassificationRandomForest(X_under, y_under, X_test, y_test)
 printCurvesWithUnderSampling(lr_probs, y_test, y_predicted)
+
+boostingmodel = XGBClassifier(scale_pos_weight=100)
+# define evaluation procedure
+cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=3, random_state=1)
+# evaluate model
+scores = cross_val_score(boostingmodel, X, y, scoring='roc_auc', cv=cv, n_jobs=-1)
+# summarize performance
+print('Mean ROC AUC: %.5f' % mean(scores))
+
+
+counter = collections.Counter(y_train)
+print('Before ClusterCentroids',counter)
+
+trans = ClusterCentroids(random_state=0)
+X_resampled, y_resampled = trans.fit_sample(X_train, y_train)
+
+counter = collections.Counter(y_resampled)
+print('After ClusterCentroids',counter)
+makeClassificationRandomForest(X_resampled, y_resampled, X_test, y_test)
+printCurvesWithClusterCentroids(lr_probs, y_test, y_predicted)
+
+
+counter = collections.Counter(y_train)
+print('Before TomekLinks',counter)
+tl = TomekLinks(sampling_strategy='majority')
+X_res, y_res= tl.fit_sample(X_train, y_train)
+
+counter = collections.Counter(y_res)
+print('After TomekLinks',counter)
+makeClassificationRandomForest(X_res, y_res, X_test, y_test)
+
 
 plotCurves()
 #plotTargetClassValues(X_train,y_train)
