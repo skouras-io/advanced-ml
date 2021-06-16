@@ -33,7 +33,7 @@ fig.suptitle('ROC AND AUC CURVES')
 fig.tight_layout(pad=0.5)
 
 def pca(X_train_pca, X_test_pca):
- pca = PCA(n_components=2)# adjust yourself
+ pca = PCA(n_components=3)# adjust yourself
  pca.fit(X_train_pca)
  X_train_pca = pca.transform(X_train_pca)
  X_test_pca = pca.transform(X_test_pca)
@@ -85,7 +85,7 @@ def plotTargetClassValues(X,y,numberOfPlot):
  else:
      fig2.show()
  
-def makeClassificationRandomForest(X_train, y_train, X_test, y_test):
+def makeClassificationLogisticRegression(X_train, y_train, X_test, y_test):
  global y_predicted
  global lr_probs 
  global model
@@ -105,7 +105,6 @@ def makeClassificationRandomForest(X_train, y_train, X_test, y_test):
  lr_probs = lr_probs[:, 1] 
  
 def makeClassificationCostSensitive(X_train, y_train):
- #random forest classifier with class-imbalance
  model = SVC(gamma='scale', class_weight='balanced')
  # define evaluation procedure
  cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=3, random_state=1)
@@ -120,12 +119,12 @@ def printCurvesWithClassImbalance(lr_probs, y_test, y_predicted, X_test):
  lr_auc = roc_auc_score(y_test, lr_probs)
  # summarize scores
  print('-------------------')
- print('Random Forest: ROC AUC=%.3f' % (lr_auc))
+ print('LogisticRegression: ROC AUC=%.3f' % (lr_auc))
  print('-------------------')
  # calculate roc curves
  lr_fpr, lr_tpr, _ = roc_curve(y_test, lr_probs)
  # plot the roc curve for the model
- ax1.plot(lr_fpr, lr_tpr, marker='.', label='Random Forest')
+ ax1.plot(lr_fpr, lr_tpr, marker='.', label='LogisticRegression')
  ax1.set_xlabel('False Positive Rate')
  ax1.set_ylabel('True Positive Rate')
  ax1.set_title('ROC CURVE with class imbalance')
@@ -135,10 +134,10 @@ def printCurvesWithClassImbalance(lr_probs, y_test, y_predicted, X_test):
  lr_f1, lr_auc = f1_score(y_test, y_predicted), auc(lr_recall, lr_precision)
  # summarize scores
  print('-------------------')
- print('Random Forest Unbalanced: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
+ print('LogisticRegression Unbalanced: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
  print('-------------------')
  # plot the precision-recall curves
- ax2.plot(lr_recall, lr_precision, marker='.', label='Random Forest')
+ ax2.plot(lr_recall, lr_precision, marker='.', label='LogisticRegression')
  ax2.set_xlabel('Recall')
  ax2.set_ylabel('Precision')
  ax2.set_title('AUC CURVE with class imbalance')
@@ -148,12 +147,12 @@ def printCurvesWithSMOTE(lr_probs, y_test, y_predicted, X_test):
  # calculate scores
  lr_auc = roc_auc_score(y_test, lr_probs)
  print('-------------------')
- print('Random Forest with SMOTE: ROC AUC=%.3f' % (lr_auc))
+ print('LogisticRegression with SMOTE: ROC AUC=%.3f' % (lr_auc))
  print('-------------------')
  # calculate roc curves
  lr_fpr, lr_tpr, _ = roc_curve(y_test, lr_probs)
  # plot the roc curve for the model
- ax3.plot(lr_fpr, lr_tpr, marker='.', label='Random Forest')
+ ax3.plot(lr_fpr, lr_tpr, marker='.', label='LogisticRegression')
  ax3.set_xlabel('False Positive Rate')
  ax3.set_ylabel('True Positive Rate')
  ax3.set_title('ROC CURVE with SMOTE')
@@ -162,9 +161,9 @@ def printCurvesWithSMOTE(lr_probs, y_test, y_predicted, X_test):
  lr_precision, lr_recall, _ = precision_recall_curve(y_test, lr_probs)
  lr_f1, lr_auc = f1_score(y_test, y_predicted,average='macro'), auc(lr_recall, lr_precision)
  print('-------------------')
- print('Random Forest with SMOTE: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
+ print('LogisticRegression with SMOTE: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
  print('-------------------')
- ax4.plot(lr_recall, lr_precision, marker='.', label='Random Forest')
+ ax4.plot(lr_recall, lr_precision, marker='.', label='LogisticRegression')
  ax4.set_xlabel('Recall')
  ax4.set_ylabel('Precision')
  ax4.set_title('AUC CURVE with SMOTE')
@@ -174,10 +173,10 @@ def printCurvesWithBorderLineSMOTE(lr_probs, y_test, y_predicted, X_test):
  # calculate scores
  lr_auc = roc_auc_score(y_test, lr_probs)
  print('-------------------')
- print('Random Forest with Borderline SMOTE: ROC AUC=%.3f' % (lr_auc))
+ print('LogisticRegression with Borderline SMOTE: ROC AUC=%.3f' % (lr_auc))
  print('-------------------')
  lr_fpr, lr_tpr, _ = roc_curve(y_test, lr_probs)
- ax5.plot(lr_fpr, lr_tpr, marker='.', label='Random Forest')
+ ax5.plot(lr_fpr, lr_tpr, marker='.', label='LogisticRegression')
  # axis labels
  ax5.set_xlabel('False Positive Rate')
  ax5.set_ylabel('True Positive Rate')
@@ -187,9 +186,9 @@ def printCurvesWithBorderLineSMOTE(lr_probs, y_test, y_predicted, X_test):
  lr_precision, lr_recall, _ = precision_recall_curve(y_test, lr_probs)
  lr_f1, lr_auc = f1_score(y_test, y_predicted,average='macro'), auc(lr_recall, lr_precision)
  print('-------------------')
- print('Random Forest with Borderline SMOTE: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
+ print('LogisticRegression with Borderline SMOTE: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
  print('-------------------')
- ax6.plot(lr_recall, lr_precision, marker='.', label='Random Forest')
+ ax6.plot(lr_recall, lr_precision, marker='.', label='LogisticRegression')
  ax6.set_xlabel('Recall')
  ax6.set_ylabel('Precision')
  ax6.set_title('AUC CURVE with BorderLine SMOTE')
@@ -198,10 +197,10 @@ def printCurvesWithBorderLineSMOTE(lr_probs, y_test, y_predicted, X_test):
 def printCurvesWithRandomOverSampler(lr_probs, y_test, y_predicted, X_test):
  lr_auc = roc_auc_score(y_test, lr_probs)
  print('-------------------')
- print('Random Forest with RandomOverSampling: ROC AUC=%.3f' % (lr_auc))
+ print('LogisticRegression with RandomOverSampling: ROC AUC=%.3f' % (lr_auc))
  print('-------------------')
  lr_fpr, lr_tpr, _ = roc_curve(y_test, lr_probs)
- ax7.plot(lr_fpr, lr_tpr, marker='.', label='Random Forest')
+ ax7.plot(lr_fpr, lr_tpr, marker='.', label='LogisticRegression')
  ax7.set_xlabel('False Positive Rate')
  ax7.set_ylabel('True Positive Rate')
  ax7.set_title('ROC CURVE with RandomOverSamler')
@@ -209,9 +208,9 @@ def printCurvesWithRandomOverSampler(lr_probs, y_test, y_predicted, X_test):
  lr_precision, lr_recall, _ = precision_recall_curve(y_test, lr_probs)
  lr_f1, lr_auc = f1_score(y_test, y_predicted,average='macro'), auc(lr_recall, lr_precision)
  print('-------------------')
- print('Random Forest with RandomOverSampling: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
+ print('LogisticRegression with RandomOverSampling: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
  print('-------------------')
- ax8.plot(lr_recall, lr_precision, marker='.', label='Random Forest')
+ ax8.plot(lr_recall, lr_precision, marker='.', label='LogisticRegression')
  ax8.set_xlabel('Recall')
  ax8.set_ylabel('Precision')
  ax8.set_title('AUC CURVE with RandomOverSamler')
@@ -220,10 +219,10 @@ def printCurvesWithRandomOverSampler(lr_probs, y_test, y_predicted, X_test):
 def printCurvesWithClusterOverSampler(lr_probs, y_test, y_predicted, X_test):
  lr_auc = roc_auc_score(y_test, lr_probs)
  print('-------------------')
- print('Random Forest with Cluster OverSampling: ROC AUC=%.3f' % (lr_auc))
+ print('LogisticRegression with Cluster OverSampling: ROC AUC=%.3f' % (lr_auc))
  print('-------------------')
  lr_fpr, lr_tpr, _ = roc_curve(y_test, lr_probs)
- ax9.plot(lr_fpr, lr_tpr, marker='.', label='Random Forest')
+ ax9.plot(lr_fpr, lr_tpr, marker='.', label='LogisticRegression')
  ax9.set_xlabel('False Positive Rate')
  ax9.set_ylabel('True Positive Rate')
  ax9.set_title('ROC CURVE with ClusterOverSampler')
@@ -231,9 +230,9 @@ def printCurvesWithClusterOverSampler(lr_probs, y_test, y_predicted, X_test):
  lr_precision, lr_recall, _ = precision_recall_curve(y_test, lr_probs)
  lr_f1, lr_auc = f1_score(y_test, y_predicted,average='macro'), auc(lr_recall, lr_precision)
  print('-------------------')
- print('Random Forest with Cluster OverSampling: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
+ print('LogisticRegression with Cluster OverSampling: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
  print('-------------------')
- ax10.plot(lr_recall, lr_precision, marker='.', label='Random Forest')
+ ax10.plot(lr_recall, lr_precision, marker='.', label='LogisticRegression')
  ax10.set_xlabel('Recall')
  ax10.set_ylabel('Precision')
  ax10.set_title('AUC CURVE with ClusterOverSampler')
@@ -242,10 +241,10 @@ def printCurvesWithClusterOverSampler(lr_probs, y_test, y_predicted, X_test):
 def printCurvesWithUnderSampling(lr_probs, y_test, y_predicted, X_test):
  lr_auc = roc_auc_score(y_test, lr_probs)
  print('-------------------')
- print('Random Forest with UnderSampling: ROC AUC=%.3f' % (lr_auc))
+ print('LogisticRegression with UnderSampling: ROC AUC=%.3f' % (lr_auc))
  print('-------------------')
  lr_fpr, lr_tpr, _ = roc_curve(y_test, lr_probs)
- ax11.plot(lr_fpr, lr_tpr, marker='.', label='Random Forest')
+ ax11.plot(lr_fpr, lr_tpr, marker='.', label='LogisticRegression')
  ax11.set_xlabel('False Positive Rate')
  ax11.set_ylabel('True Positive Rate')
  ax11.set_title('ROC CURVE with UnderSampling')
@@ -253,9 +252,9 @@ def printCurvesWithUnderSampling(lr_probs, y_test, y_predicted, X_test):
  lr_precision, lr_recall, _ = precision_recall_curve(y_test, lr_probs)
  lr_f1, lr_auc = f1_score(y_test, y_predicted,average='macro'), auc(lr_recall, lr_precision)
  print('-------------------')
- print('Random Forest with UnderSampling: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
+ print('LogisticRegression with UnderSampling: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
  print('-------------------')
- ax12.plot(lr_recall, lr_precision, marker='.', label='Random Forest')
+ ax12.plot(lr_recall, lr_precision, marker='.', label='LogisticRegression')
  ax12.set_xlabel('Recall')
  ax12.set_ylabel('Precision')
  ax12.set_title('AUC CURVE with UnderSampling')
@@ -264,10 +263,10 @@ def printCurvesWithUnderSampling(lr_probs, y_test, y_predicted, X_test):
 def printCurvesWithClusterCentroids(lr_probs, y_test, y_predicted, X_test):
  lr_auc = roc_auc_score(y_test, lr_probs)
  print('-------------------')
- print('Random Forest with ClusterCentroids: ROC AUC=%.3f' % (lr_auc))
+ print('LogisticRegression with ClusterCentroids: ROC AUC=%.3f' % (lr_auc))
  print('-------------------')
  lr_fpr, lr_tpr, _ = roc_curve(y_test, lr_probs)
- ax13.plot(lr_fpr, lr_tpr, marker='.', label='Random Forest')
+ ax13.plot(lr_fpr, lr_tpr, marker='.', label='LogisticRegression')
  ax13.set_xlabel('False Positive Rate')
  ax13.set_ylabel('True Positive Rate')
  ax13.set_title('ROC CURVE with ClusterCentroids')
@@ -275,9 +274,9 @@ def printCurvesWithClusterCentroids(lr_probs, y_test, y_predicted, X_test):
  lr_precision, lr_recall, _ = precision_recall_curve(y_test, lr_probs)
  lr_f1, lr_auc = f1_score(y_test, y_predicted,average='macro'), auc(lr_recall, lr_precision)
  print('-------------------')
- print('Random Forest with ClusterCentroids: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
+ print('LogisticRegression with ClusterCentroids: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
  print('-------------------')
- ax14.plot(lr_recall, lr_precision, marker='.', label='Random Forest')
+ ax14.plot(lr_recall, lr_precision, marker='.', label='LogisticRegression')
  ax14.set_xlabel('Recall')
  ax14.set_ylabel('Precision')
  ax14.set_title('AUC CURVE with ClusterCentroids')
@@ -323,13 +322,13 @@ del X["KFK_BLOOD"]
 del X["S_AD_KBRIG"]
 del X["D_AD_KBRIG"]
 del X["R_AB_3_n"]
-
 del X["R_AB_2_n"]
-#R_AB_3_n
-del X["NA_R_2_n"]
-del X["NA_R_3_n"]
-del X["NOT_NA_2_n"]
-del X["NOT_NA_3_n"]
+
+
+#del X["NA_R_2_n"]
+#del X["NA_R_3_n"]
+#del X["NOT_NA_2_n"]
+#del X["NOT_NA_3_n"]
 
 print('-------------------')
 print(X.shape)
@@ -349,7 +348,7 @@ print('-------------------')
 
 #------------------------
 #preproccessing
-imputer = KNNImputer(weights='uniform',n_neighbors=5)
+imputer = KNNImputer(weights='uniform',n_neighbors=50)
 
 X_train = imputer.fit_transform(X_train)
 X_test  = imputer.transform(X_test)
@@ -367,7 +366,7 @@ X_test = scaler.transform(X_test)
 
 #------------------------
 X_train_pca,X_test_pca = pca(X_train,X_test)
-makeClassificationRandomForest(X_train_pca, y_train, X_test_pca, y_test)
+makeClassificationLogisticRegression(X_train_pca, y_train, X_test_pca, y_test)
 printCurvesWithClassImbalance(lr_probs, y_test, y_predicted, X_test_pca)
 #plotTargetClassValues(X_train,y_train,1)
 #------------------------
@@ -386,7 +385,7 @@ print('After SMOTE',counter)
 print('-------------------')
 
 X_train_sm,X_test_pca = pca(X_train_sm,X_test)
-makeClassificationRandomForest(X_train_sm, y_train_sm, X_test_pca, y_test)
+makeClassificationLogisticRegression (X_train_sm, y_train_sm, X_test_pca, y_test)
 printCurvesWithSMOTE(lr_probs, y_test, y_predicted, X_test_pca)
 #plotTargetClassValues(X_train_sm,y_train_sm,2)
 #------------------------
@@ -404,7 +403,7 @@ print('After SMOTE Borderline',counter)
 print('-------------------')
 
 X_train_sm_borderline,X_test_pca = pca(X_train_sm_borderline,X_test)
-makeClassificationRandomForest(X_train_sm_borderline, y_train_sm_borderline, X_test_pca, y_test)
+makeClassificationLogisticRegression(X_train_sm_borderline, y_train_sm_borderline, X_test_pca, y_test)
 printCurvesWithBorderLineSMOTE(lr_probs, y_test, y_predicted, X_test_pca)
 #plotTargetClassValues(X_train_sm_borderline,y_train_sm_borderline,3)
 #------------------------
@@ -423,7 +422,7 @@ print('After RandomOverSampler',counter)
 print('-------------------')
 
 X_over,X_test_pca = pca(X_over,X_test)
-makeClassificationRandomForest(X_over, y_over, X_test_pca, y_test)
+makeClassificationLogisticRegression(X_over, y_over, X_test_pca, y_test)
 printCurvesWithRandomOverSampler(lr_probs, y_test, y_predicted, X_test_pca)
 #plotTargetClassValues(X_over,y_over,4)
 #------------------------
@@ -445,7 +444,7 @@ print('After KMeans',counter)
 print('-------------------')
 
 X_res,X_test_pca = pca(X_res,X_test)
-makeClassificationRandomForest(X_res, y_res, X_test_pca, y_test)
+makeClassificationLogisticRegression(X_res, y_res, X_test_pca, y_test)
 printCurvesWithClusterOverSampler(lr_probs, y_test, y_predicted, X_test_pca)
 #plotTargetClassValues(X_res,y_res,5)
 #------------------------
@@ -468,7 +467,7 @@ print('After UnderSampling',counter)
 print('-------------------')
 
 X_under,X_test_pca = pca(X_under,X_test)
-makeClassificationRandomForest(X_under, y_under, X_test_pca, y_test)
+makeClassificationLogisticRegression(X_under, y_under, X_test_pca, y_test)
 printCurvesWithUnderSampling(lr_probs, y_test, y_predicted, X_test_pca)
 #plotTargetClassValues(X_under,y_under,6)
 #------------------------
@@ -500,26 +499,11 @@ print('After ClusterCentroids',counter)
 print('-------------------')
 
 X_resampled,X_test_pca = pca(X_resampled,X_test)
-makeClassificationRandomForest(X_resampled, y_resampled, X_test_pca, y_test)
+makeClassificationLogisticRegression(X_resampled, y_resampled, X_test_pca, y_test)
 printCurvesWithClusterCentroids(lr_probs, y_test, y_predicted, X_test_pca)
 #plotTargetClassValues(X_resampled,y_resampled,7)
 #------------------------
 
-#------------------------
-counter = collections.Counter(y_train)
-print('-------------------')
-print('Before TomekLinks',counter)
-tl = TomekLinks(sampling_strategy='majority')
-X_res, y_res= tl.fit_sample(X_train, y_train)
-
-counter = collections.Counter(y_res)
-print('After TomekLinks',counter)
-print('-------------------')
-X_res,X_test_pca = pca(X_res,X_test)
-makeClassificationRandomForest(X_res, y_res, X_test_pca, y_test)
-#------------------------
-
-#------------------------
 #plotTargetClassValues(X,y,8)
 plotCurves()
 #------------------------
