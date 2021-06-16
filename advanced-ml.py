@@ -117,6 +117,7 @@ def makeClassificationCostSensitive(X_train, y_train):
  
 def printCurvesWithClassImbalance(lr_probs, y_test, y_predicted, X_test):
  lr_auc = roc_auc_score(y_test, lr_probs)
+ plot_auc_score = lr_auc
  # summarize scores
  print('-------------------')
  print('LogisticRegression: ROC AUC=%.3f' % (lr_auc))
@@ -142,10 +143,12 @@ def printCurvesWithClassImbalance(lr_probs, y_test, y_predicted, X_test):
  ax2.set_ylabel('Precision')
  ax2.set_title('AUC CURVE with class imbalance')
  plot_confusion_matrix(model, X_test, y_test, ax=axBar)
+ return plot_auc_score
  
 def printCurvesWithSMOTE(lr_probs, y_test, y_predicted, X_test):
  # calculate scores
  lr_auc = roc_auc_score(y_test, lr_probs)
+ plot_auc_score = lr_auc
  print('-------------------')
  print('LogisticRegression with SMOTE: ROC AUC=%.3f' % (lr_auc))
  print('-------------------')
@@ -168,10 +171,12 @@ def printCurvesWithSMOTE(lr_probs, y_test, y_predicted, X_test):
  ax4.set_ylabel('Precision')
  ax4.set_title('AUC CURVE with SMOTE')
  plot_confusion_matrix(model, X_test, y_test, ax=axBar2)
- 
+ return plot_auc_score
+
 def printCurvesWithBorderLineSMOTE(lr_probs, y_test, y_predicted, X_test):
  # calculate scores
  lr_auc = roc_auc_score(y_test, lr_probs)
+ plot_auc_score = lr_auc
  print('-------------------')
  print('LogisticRegression with Borderline SMOTE: ROC AUC=%.3f' % (lr_auc))
  print('-------------------')
@@ -193,9 +198,11 @@ def printCurvesWithBorderLineSMOTE(lr_probs, y_test, y_predicted, X_test):
  ax6.set_ylabel('Precision')
  ax6.set_title('AUC CURVE with BorderLine SMOTE')
  plot_confusion_matrix(model, X_test, y_test, ax=axBar3)
- 
+ return plot_auc_score
+
 def printCurvesWithRandomOverSampler(lr_probs, y_test, y_predicted, X_test):
  lr_auc = roc_auc_score(y_test, lr_probs)
+ plot_auc_score = lr_auc
  print('-------------------')
  print('LogisticRegression with RandomOverSampling: ROC AUC=%.3f' % (lr_auc))
  print('-------------------')
@@ -215,9 +222,11 @@ def printCurvesWithRandomOverSampler(lr_probs, y_test, y_predicted, X_test):
  ax8.set_ylabel('Precision')
  ax8.set_title('AUC CURVE with RandomOverSamler')
  plot_confusion_matrix(model, X_test, y_test, ax=axBar4)
+ return plot_auc_score
 
 def printCurvesWithClusterOverSampler(lr_probs, y_test, y_predicted, X_test):
  lr_auc = roc_auc_score(y_test, lr_probs)
+ plot_auc_score = lr_auc
  print('-------------------')
  print('LogisticRegression with Cluster OverSampling: ROC AUC=%.3f' % (lr_auc))
  print('-------------------')
@@ -237,9 +246,11 @@ def printCurvesWithClusterOverSampler(lr_probs, y_test, y_predicted, X_test):
  ax10.set_ylabel('Precision')
  ax10.set_title('AUC CURVE with ClusterOverSampler')
  plot_confusion_matrix(model, X_test, y_test, ax=axBar5)
+ return plot_auc_score
 
 def printCurvesWithUnderSampling(lr_probs, y_test, y_predicted, X_test):
  lr_auc = roc_auc_score(y_test, lr_probs)
+ plot_auc_score = lr_auc
  print('-------------------')
  print('LogisticRegression with UnderSampling: ROC AUC=%.3f' % (lr_auc))
  print('-------------------')
@@ -259,9 +270,11 @@ def printCurvesWithUnderSampling(lr_probs, y_test, y_predicted, X_test):
  ax12.set_ylabel('Precision')
  ax12.set_title('AUC CURVE with UnderSampling')
  plot_confusion_matrix(model, X_test, y_test, ax=axBar6)
+ return plot_auc_score
 
 def printCurvesWithClusterCentroids(lr_probs, y_test, y_predicted, X_test):
  lr_auc = roc_auc_score(y_test, lr_probs)
+ plot_auc_score = lr_auc
  print('-------------------')
  print('LogisticRegression with ClusterCentroids: ROC AUC=%.3f' % (lr_auc))
  print('-------------------')
@@ -270,7 +283,7 @@ def printCurvesWithClusterCentroids(lr_probs, y_test, y_predicted, X_test):
  ax13.set_xlabel('False Positive Rate')
  ax13.set_ylabel('True Positive Rate')
  ax13.set_title('ROC CURVE with ClusterCentroids')
-
+ 
  lr_precision, lr_recall, _ = precision_recall_curve(y_test, lr_probs)
  lr_f1, lr_auc = f1_score(y_test, y_predicted,average='macro'), auc(lr_recall, lr_precision)
  print('-------------------')
@@ -281,7 +294,8 @@ def printCurvesWithClusterCentroids(lr_probs, y_test, y_predicted, X_test):
  ax14.set_ylabel('Precision')
  ax14.set_title('AUC CURVE with ClusterCentroids')
  plot_confusion_matrix(model, X_test, y_test, ax=axBar7)
- 
+ return plot_auc_score
+
 def plotCurves():
  # show the plot
  fig.show()
@@ -367,7 +381,7 @@ X_test = scaler.transform(X_test)
 #------------------------
 X_train_pca,X_test_pca = pca(X_train,X_test)
 makeClassificationLogisticRegression(X_train_pca, y_train, X_test_pca, y_test)
-printCurvesWithClassImbalance(lr_probs, y_test, y_predicted, X_test_pca)
+lr_auc1 = printCurvesWithClassImbalance(lr_probs, y_test, y_predicted, X_test_pca)
 #plotTargetClassValues(X_train,y_train,1)
 #------------------------
 
@@ -386,7 +400,7 @@ print('-------------------')
 
 X_train_sm,X_test_pca = pca(X_train_sm,X_test)
 makeClassificationLogisticRegression (X_train_sm, y_train_sm, X_test_pca, y_test)
-printCurvesWithSMOTE(lr_probs, y_test, y_predicted, X_test_pca)
+lr_auc2 = printCurvesWithSMOTE(lr_probs, y_test, y_predicted, X_test_pca)
 #plotTargetClassValues(X_train_sm,y_train_sm,2)
 #------------------------
 
@@ -404,7 +418,7 @@ print('-------------------')
 
 X_train_sm_borderline,X_test_pca = pca(X_train_sm_borderline,X_test)
 makeClassificationLogisticRegression(X_train_sm_borderline, y_train_sm_borderline, X_test_pca, y_test)
-printCurvesWithBorderLineSMOTE(lr_probs, y_test, y_predicted, X_test_pca)
+lr_auc3 = printCurvesWithBorderLineSMOTE(lr_probs, y_test, y_predicted, X_test_pca)
 #plotTargetClassValues(X_train_sm_borderline,y_train_sm_borderline,3)
 #------------------------
 
@@ -423,7 +437,7 @@ print('-------------------')
 
 X_over,X_test_pca = pca(X_over,X_test)
 makeClassificationLogisticRegression(X_over, y_over, X_test_pca, y_test)
-printCurvesWithRandomOverSampler(lr_probs, y_test, y_predicted, X_test_pca)
+lr_auc4 = printCurvesWithRandomOverSampler(lr_probs, y_test, y_predicted, X_test_pca)
 #plotTargetClassValues(X_over,y_over,4)
 #------------------------
 
@@ -445,7 +459,7 @@ print('-------------------')
 
 X_res,X_test_pca = pca(X_res,X_test)
 makeClassificationLogisticRegression(X_res, y_res, X_test_pca, y_test)
-printCurvesWithClusterOverSampler(lr_probs, y_test, y_predicted, X_test_pca)
+lr_auc5 = printCurvesWithClusterOverSampler(lr_probs, y_test, y_predicted, X_test_pca)
 #plotTargetClassValues(X_res,y_res,5)
 #------------------------
 
@@ -468,7 +482,7 @@ print('-------------------')
 
 X_under,X_test_pca = pca(X_under,X_test)
 makeClassificationLogisticRegression(X_under, y_under, X_test_pca, y_test)
-printCurvesWithUnderSampling(lr_probs, y_test, y_predicted, X_test_pca)
+lr_auc6 = printCurvesWithUnderSampling(lr_probs, y_test, y_predicted, X_test_pca)
 #plotTargetClassValues(X_under,y_under,6)
 #------------------------
 
@@ -500,11 +514,15 @@ print('-------------------')
 
 X_resampled,X_test_pca = pca(X_resampled,X_test)
 makeClassificationLogisticRegression(X_resampled, y_resampled, X_test_pca, y_test)
-printCurvesWithClusterCentroids(lr_probs, y_test, y_predicted, X_test_pca)
+lr_auc7 = printCurvesWithClusterCentroids(lr_probs, y_test, y_predicted, X_test_pca)
 #plotTargetClassValues(X_resampled,y_resampled,7)
 #------------------------
 
 #plotTargetClassValues(X,y,8)
+fig3,axRoc = pyplot.subplots()
+axRoc.bar(['Unbalanced' , 'SMOTE' , 'BorderLine SMOTE' , 'RandomOverSampler', 'ClusterOverSampler', 'UnderSampling', 'ClusterCentroids'],[lr_auc1,lr_auc2,lr_auc3,lr_auc4,lr_auc5,lr_auc6,lr_auc7])
+fig3.show()
+
 plotCurves()
 #------------------------
 
