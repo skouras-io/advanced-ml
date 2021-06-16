@@ -32,6 +32,13 @@ fig, ((ax1, ax2, axBar), (ax3, ax4,axBar2), (ax5, ax6,axBar3), (ax7, ax8,axBar4)
 fig.suptitle('ROC AND AUC CURVES')   
 fig.tight_layout(pad=0.5)
 
+def pca(X_train_pca, X_test_pca):
+ pca = PCA(n_components=2)# adjust yourself
+ pca.fit(X_train_pca)
+ X_train_pca = pca.transform(X_train_pca)
+ X_test_pca = pca.transform(X_test_pca)
+ return X_train_pca, X_test_pca
+
 def plotTargetClassValues(X,y,numberOfPlot): 
  fig2, ((axx1,axx2),(axx3,axx4),(axx5,axx6),(axx7,axx8)) = pyplot.subplots(4,2)
  fig2.suptitle ('Number Of target values')
@@ -95,7 +102,7 @@ def makeClassificationRandomForest(X_train, y_train, X_test, y_test):
  print('F1 Score : %f'%f1_score(y_test,y_predicted,average='macro'))
  print('-------------------')
  lr_probs = model.predict_proba(X_test)
- lr_probs = lr_probs[:, 0] 
+ lr_probs = lr_probs[:, 1] 
  
 def makeClassificationCostSensitive(X_train, y_train):
  #random forest classifier with class-imbalance
@@ -109,7 +116,7 @@ def makeClassificationCostSensitive(X_train, y_train):
  print('Mean ROC AUC: %.3f' % mean(scores))
  print('-------------------')
  
-def printCurvesWithClassImbalance(lr_probs, y_test, y_predicted):
+def printCurvesWithClassImbalance(lr_probs, y_test, y_predicted, X_test):
  lr_auc = roc_auc_score(y_test, lr_probs)
  # summarize scores
  print('-------------------')
@@ -128,7 +135,7 @@ def printCurvesWithClassImbalance(lr_probs, y_test, y_predicted):
  lr_f1, lr_auc = f1_score(y_test, y_predicted), auc(lr_recall, lr_precision)
  # summarize scores
  print('-------------------')
- print('Random Forest: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
+ print('Random Forest Unbalanced: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
  print('-------------------')
  # plot the precision-recall curves
  ax2.plot(lr_recall, lr_precision, marker='.', label='Random Forest')
@@ -137,11 +144,11 @@ def printCurvesWithClassImbalance(lr_probs, y_test, y_predicted):
  ax2.set_title('AUC CURVE with class imbalance')
  plot_confusion_matrix(model, X_test, y_test, ax=axBar)
  
-def printCurvesWithSMOTE(lr_probs, y_test, y_predicted):
+def printCurvesWithSMOTE(lr_probs, y_test, y_predicted, X_test):
  # calculate scores
  lr_auc = roc_auc_score(y_test, lr_probs)
  print('-------------------')
- print('Random Forest: ROC AUC=%.3f' % (lr_auc))
+ print('Random Forest with SMOTE: ROC AUC=%.3f' % (lr_auc))
  print('-------------------')
  # calculate roc curves
  lr_fpr, lr_tpr, _ = roc_curve(y_test, lr_probs)
@@ -155,7 +162,7 @@ def printCurvesWithSMOTE(lr_probs, y_test, y_predicted):
  lr_precision, lr_recall, _ = precision_recall_curve(y_test, lr_probs)
  lr_f1, lr_auc = f1_score(y_test, y_predicted,average='macro'), auc(lr_recall, lr_precision)
  print('-------------------')
- print('Random Forest: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
+ print('Random Forest with SMOTE: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
  print('-------------------')
  ax4.plot(lr_recall, lr_precision, marker='.', label='Random Forest')
  ax4.set_xlabel('Recall')
@@ -163,11 +170,11 @@ def printCurvesWithSMOTE(lr_probs, y_test, y_predicted):
  ax4.set_title('AUC CURVE with SMOTE')
  plot_confusion_matrix(model, X_test, y_test, ax=axBar2)
  
-def printCurvesWithBorderLineSMOTE(lr_probs, y_test, y_predicted):
+def printCurvesWithBorderLineSMOTE(lr_probs, y_test, y_predicted, X_test):
  # calculate scores
  lr_auc = roc_auc_score(y_test, lr_probs)
  print('-------------------')
- print('Random Forest: ROC AUC=%.3f' % (lr_auc))
+ print('Random Forest with Borderline SMOTE: ROC AUC=%.3f' % (lr_auc))
  print('-------------------')
  lr_fpr, lr_tpr, _ = roc_curve(y_test, lr_probs)
  ax5.plot(lr_fpr, lr_tpr, marker='.', label='Random Forest')
@@ -180,7 +187,7 @@ def printCurvesWithBorderLineSMOTE(lr_probs, y_test, y_predicted):
  lr_precision, lr_recall, _ = precision_recall_curve(y_test, lr_probs)
  lr_f1, lr_auc = f1_score(y_test, y_predicted,average='macro'), auc(lr_recall, lr_precision)
  print('-------------------')
- print('Random Forest: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
+ print('Random Forest with Borderline SMOTE: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
  print('-------------------')
  ax6.plot(lr_recall, lr_precision, marker='.', label='Random Forest')
  ax6.set_xlabel('Recall')
@@ -188,10 +195,10 @@ def printCurvesWithBorderLineSMOTE(lr_probs, y_test, y_predicted):
  ax6.set_title('AUC CURVE with BorderLine SMOTE')
  plot_confusion_matrix(model, X_test, y_test, ax=axBar3)
  
-def printCurvesWithRandomOverSampler(lr_probs, y_test, y_predicted):
+def printCurvesWithRandomOverSampler(lr_probs, y_test, y_predicted, X_test):
  lr_auc = roc_auc_score(y_test, lr_probs)
  print('-------------------')
- print('Random Forest: ROC AUC=%.3f' % (lr_auc))
+ print('Random Forest with RandomOverSampling: ROC AUC=%.3f' % (lr_auc))
  print('-------------------')
  lr_fpr, lr_tpr, _ = roc_curve(y_test, lr_probs)
  ax7.plot(lr_fpr, lr_tpr, marker='.', label='Random Forest')
@@ -202,7 +209,7 @@ def printCurvesWithRandomOverSampler(lr_probs, y_test, y_predicted):
  lr_precision, lr_recall, _ = precision_recall_curve(y_test, lr_probs)
  lr_f1, lr_auc = f1_score(y_test, y_predicted,average='macro'), auc(lr_recall, lr_precision)
  print('-------------------')
- print('Random Forest: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
+ print('Random Forest with RandomOverSampling: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
  print('-------------------')
  ax8.plot(lr_recall, lr_precision, marker='.', label='Random Forest')
  ax8.set_xlabel('Recall')
@@ -210,10 +217,10 @@ def printCurvesWithRandomOverSampler(lr_probs, y_test, y_predicted):
  ax8.set_title('AUC CURVE with RandomOverSamler')
  plot_confusion_matrix(model, X_test, y_test, ax=axBar4)
 
-def printCurvesWithClusterOverSampler(lr_probs, y_test, y_predicted):
+def printCurvesWithClusterOverSampler(lr_probs, y_test, y_predicted, X_test):
  lr_auc = roc_auc_score(y_test, lr_probs)
  print('-------------------')
- print('Random Forest: ROC AUC=%.3f' % (lr_auc))
+ print('Random Forest with Cluster OverSampling: ROC AUC=%.3f' % (lr_auc))
  print('-------------------')
  lr_fpr, lr_tpr, _ = roc_curve(y_test, lr_probs)
  ax9.plot(lr_fpr, lr_tpr, marker='.', label='Random Forest')
@@ -224,7 +231,7 @@ def printCurvesWithClusterOverSampler(lr_probs, y_test, y_predicted):
  lr_precision, lr_recall, _ = precision_recall_curve(y_test, lr_probs)
  lr_f1, lr_auc = f1_score(y_test, y_predicted,average='macro'), auc(lr_recall, lr_precision)
  print('-------------------')
- print('Random Forest: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
+ print('Random Forest with Cluster OverSampling: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
  print('-------------------')
  ax10.plot(lr_recall, lr_precision, marker='.', label='Random Forest')
  ax10.set_xlabel('Recall')
@@ -232,10 +239,10 @@ def printCurvesWithClusterOverSampler(lr_probs, y_test, y_predicted):
  ax10.set_title('AUC CURVE with ClusterOverSampler')
  plot_confusion_matrix(model, X_test, y_test, ax=axBar5)
 
-def printCurvesWithUnderSampling(lr_probs, y_test, y_predicted):
+def printCurvesWithUnderSampling(lr_probs, y_test, y_predicted, X_test):
  lr_auc = roc_auc_score(y_test, lr_probs)
  print('-------------------')
- print('Random Forest: ROC AUC=%.3f' % (lr_auc))
+ print('Random Forest with UnderSampling: ROC AUC=%.3f' % (lr_auc))
  print('-------------------')
  lr_fpr, lr_tpr, _ = roc_curve(y_test, lr_probs)
  ax11.plot(lr_fpr, lr_tpr, marker='.', label='Random Forest')
@@ -246,7 +253,7 @@ def printCurvesWithUnderSampling(lr_probs, y_test, y_predicted):
  lr_precision, lr_recall, _ = precision_recall_curve(y_test, lr_probs)
  lr_f1, lr_auc = f1_score(y_test, y_predicted,average='macro'), auc(lr_recall, lr_precision)
  print('-------------------')
- print('Random Forest: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
+ print('Random Forest with UnderSampling: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
  print('-------------------')
  ax12.plot(lr_recall, lr_precision, marker='.', label='Random Forest')
  ax12.set_xlabel('Recall')
@@ -254,10 +261,10 @@ def printCurvesWithUnderSampling(lr_probs, y_test, y_predicted):
  ax12.set_title('AUC CURVE with UnderSampling')
  plot_confusion_matrix(model, X_test, y_test, ax=axBar6)
 
-def printCurvesWithClusterCentroids(lr_probs, y_test, y_predicted):
+def printCurvesWithClusterCentroids(lr_probs, y_test, y_predicted, X_test):
  lr_auc = roc_auc_score(y_test, lr_probs)
  print('-------------------')
- print('Random Forest: ROC AUC=%.3f' % (lr_auc))
+ print('Random Forest with ClusterCentroids: ROC AUC=%.3f' % (lr_auc))
  print('-------------------')
  lr_fpr, lr_tpr, _ = roc_curve(y_test, lr_probs)
  ax13.plot(lr_fpr, lr_tpr, marker='.', label='Random Forest')
@@ -268,7 +275,7 @@ def printCurvesWithClusterCentroids(lr_probs, y_test, y_predicted):
  lr_precision, lr_recall, _ = precision_recall_curve(y_test, lr_probs)
  lr_f1, lr_auc = f1_score(y_test, y_predicted,average='macro'), auc(lr_recall, lr_precision)
  print('-------------------')
- print('Random Forest: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
+ print('Random Forest with ClusterCentroids: f1=%.3f auc=%.3f' % (lr_f1, lr_auc))
  print('-------------------')
  ax14.plot(lr_recall, lr_precision, marker='.', label='Random Forest')
  ax14.set_xlabel('Recall')
@@ -331,7 +338,7 @@ print(y.shape)
 
 #------------------------
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.6, random_state=0)
+X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.7, random_state=0, stratify=y)
 print(X_train.shape)
 print(X_test.shape)
 print(y_train.shape)
@@ -356,21 +363,13 @@ scaler = MinMaxScaler()
 
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
-
-pca = PCA(n_components=3)# adjust yourself
-pca.fit(X_train)
-X_train = pca.transform(X_train)
-X_test = pca.transform(X_test)
-
-#kpca = KernelPCA(kernel='poly',n_components=700,degree=3,gamma=0.1,max_iter=10000)
-#X_train = kpca.fit_transform(X_train)
-#X_test = kpca.transform(X_test)
 #------------------------
 
 #------------------------
-makeClassificationRandomForest(X_train, y_train, X_test, y_test)
-printCurvesWithClassImbalance(lr_probs, y_test, y_predicted)
-plotTargetClassValues(X_train,y_train,1)
+X_train_pca,X_test_pca = pca(X_train,X_test)
+makeClassificationRandomForest(X_train_pca, y_train, X_test_pca, y_test)
+printCurvesWithClassImbalance(lr_probs, y_test, y_predicted, X_test_pca)
+#plotTargetClassValues(X_train,y_train,1)
 #------------------------
 
 #------------------------
@@ -386,9 +385,10 @@ counter = collections.Counter(y_train_sm)
 print('After SMOTE',counter)
 print('-------------------')
 
-makeClassificationRandomForest(X_train_sm, y_train_sm, X_test, y_test)
-printCurvesWithSMOTE(lr_probs, y_test, y_predicted)
-plotTargetClassValues(X_train_sm,y_train_sm,2)
+X_train_sm,X_test_pca = pca(X_train_sm,X_test)
+makeClassificationRandomForest(X_train_sm, y_train_sm, X_test_pca, y_test)
+printCurvesWithSMOTE(lr_probs, y_test, y_predicted, X_test_pca)
+#plotTargetClassValues(X_train_sm,y_train_sm,2)
 #------------------------
 
 #------------------------
@@ -403,9 +403,10 @@ counter = collections.Counter(y_train_sm_borderline)
 print('After SMOTE Borderline',counter)
 print('-------------------')
 
-makeClassificationRandomForest(X_train_sm_borderline, y_train_sm_borderline, X_test, y_test)
-printCurvesWithBorderLineSMOTE(lr_probs, y_test, y_predicted)
-plotTargetClassValues(X_train_sm_borderline,y_train_sm_borderline,3)
+X_train_sm_borderline,X_test_pca = pca(X_train_sm_borderline,X_test)
+makeClassificationRandomForest(X_train_sm_borderline, y_train_sm_borderline, X_test_pca, y_test)
+printCurvesWithBorderLineSMOTE(lr_probs, y_test, y_predicted, X_test_pca)
+#plotTargetClassValues(X_train_sm_borderline,y_train_sm_borderline,3)
 #------------------------
 
 #------------------------
@@ -421,9 +422,10 @@ counter = collections.Counter(y_over)
 print('After RandomOverSampler',counter)
 print('-------------------')
 
-makeClassificationRandomForest(X_over, y_over, X_test, y_test)
-printCurvesWithRandomOverSampler(lr_probs, y_test, y_predicted)
-plotTargetClassValues(X_over,y_over,4)
+X_over,X_test_pca = pca(X_over,X_test)
+makeClassificationRandomForest(X_over, y_over, X_test_pca, y_test)
+printCurvesWithRandomOverSampler(lr_probs, y_test, y_predicted, X_test_pca)
+#plotTargetClassValues(X_over,y_over,4)
 #------------------------
 
 #------------------------
@@ -432,7 +434,7 @@ print('-------------------')
 print('Before KMeans',counter)
 
 smote = SMOTE(random_state= 12)
-kmeans = KMeans(n_clusters=25, random_state=17)
+kmeans = KMeans(n_clusters=2, random_state=17)
 kmeans_smote = ClusterOverSampler(oversampler=smote, clusterer=kmeans)
 
 # Fit and resample imbalanced data
@@ -442,9 +444,10 @@ counter = collections.Counter(y_res)
 print('After KMeans',counter)
 print('-------------------')
 
-makeClassificationRandomForest(X_res, y_res, X_test, y_test)
-printCurvesWithClusterOverSampler(lr_probs, y_test, y_predicted)
-plotTargetClassValues(X_res,y_res,5)
+X_res,X_test_pca = pca(X_res,X_test)
+makeClassificationRandomForest(X_res, y_res, X_test_pca, y_test)
+printCurvesWithClusterOverSampler(lr_probs, y_test, y_predicted, X_test_pca)
+#plotTargetClassValues(X_res,y_res,5)
 #------------------------
 
 #------------------------
@@ -464,9 +467,10 @@ counter = collections.Counter(y_under)
 print('After UnderSampling',counter)
 print('-------------------')
 
-makeClassificationRandomForest(X_under, y_under, X_test, y_test)
-printCurvesWithUnderSampling(lr_probs, y_test, y_predicted)
-plotTargetClassValues(X_under,y_under,6)
+X_under,X_test_pca = pca(X_under,X_test)
+makeClassificationRandomForest(X_under, y_under, X_test_pca, y_test)
+printCurvesWithUnderSampling(lr_probs, y_test, y_predicted, X_test_pca)
+#plotTargetClassValues(X_under,y_under,6)
 #------------------------
 
 #------------------------
@@ -477,7 +481,7 @@ cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=3, random_state=1)
 scores = cross_val_score(boostingmodel, X, y, scoring='roc_auc', cv=cv, n_jobs=-1)
 # summarize performance
 print('-------------------')
-print('Mean ROC AUC: %.5f' % mean(scores))
+print('Mean ROC AUC for XGBClassifier: %.5f' % mean(scores))
 print('-------------------')
 #------------------------
 
@@ -494,9 +498,11 @@ X_resampled, y_resampled = trans.fit_sample(X_train, y_train)
 counter = collections.Counter(y_resampled)
 print('After ClusterCentroids',counter)
 print('-------------------')
-makeClassificationRandomForest(X_resampled, y_resampled, X_test, y_test)
-printCurvesWithClusterCentroids(lr_probs, y_test, y_predicted)
-plotTargetClassValues(X_resampled,y_resampled,7)
+
+X_resampled,X_test_pca = pca(X_resampled,X_test)
+makeClassificationRandomForest(X_resampled, y_resampled, X_test_pca, y_test)
+printCurvesWithClusterCentroids(lr_probs, y_test, y_predicted, X_test_pca)
+#plotTargetClassValues(X_resampled,y_resampled,7)
 #------------------------
 
 #------------------------
@@ -509,11 +515,12 @@ X_res, y_res= tl.fit_sample(X_train, y_train)
 counter = collections.Counter(y_res)
 print('After TomekLinks',counter)
 print('-------------------')
-makeClassificationRandomForest(X_res, y_res, X_test, y_test)
+X_res,X_test_pca = pca(X_res,X_test)
+makeClassificationRandomForest(X_res, y_res, X_test_pca, y_test)
 #------------------------
 
 #------------------------
-plotTargetClassValues(X,y,8)
+#plotTargetClassValues(X,y,8)
 plotCurves()
 #------------------------
 
